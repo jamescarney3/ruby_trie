@@ -1,7 +1,6 @@
 module Trie
 
   require 'set'
-  require 'byebug'
 
   class PrefixTree
 
