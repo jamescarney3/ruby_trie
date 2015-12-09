@@ -1,22 +1,60 @@
 module Trie
 
   require 'set'
+  require 'byebug'
 
-  class PrefixTreeNode < Hash
+  class PrefixTree
+
     def initialize
-      @indices = Set.new
+      @tree = {}
     end
 
-    def get_indices
-      @indices.to_a
+    def add_word(word)
+      current_node = @tree
+
+      word.chars.each do |c|
+        current_node[c] ||= {}
+        current_node = current_node[c]
+      end
+
+      current_node[:leaf] = true
     end
 
-    def add_idx(idx)
-      @indices.add(idx)
+    def remove_word(word)
+      current_node = @tree
+      last_essential_node = @tree
+      last_node_key = word[0]
+
+      word.length.times do |idx|
+        return false if !current_node[word[idx]]
+        if current_node.keys != [word[idx]]
+          last_essential_node = current_node
+          last_node_key = word[idx]
+        end
+        current_node = current_node[word[idx]]
+      end
+
+      if current_node.keys == [:leaf]
+        last_essential_node.delete(last_node_key)
+      else
+        current_node.delete(:leaf)
+      end
+      return true
+    end
+
+    def include?(word)
+      current_node = @tree
+
+      word.length.times do |idx|
+        return false if !current_node[word[idx]]
+        current_node = current_node[word[idx]]
+      end
+
+      current_node[:leaf] ? true : false
     end
   end
 
-  class PrefixTree
+  class IndexedPrefixTree
     def initialize(str)
       @tree = {}
       add_all_subs(str)
@@ -26,7 +64,7 @@ module Trie
       current_node = @tree
 
       word.chars.each do |c|
-        current_node[c] ||= Trie::PrefixTreeNode.new
+        current_node[c] ||= Trie::IndexedPrefixTreeNode.new
         current_node[c].add_idx(idx)
         current_node = current_node[c]
       end
@@ -57,6 +95,20 @@ module Trie
         end
         s += 1
       end
+    end
+  end
+
+  class IndexedPrefixTreeNode < Hash
+    def initialize
+      @indices = Set.new
+    end
+
+    def get_indices
+      @indices.to_a
+    end
+
+    def add_idx(idx)
+      @indices.add(idx)
     end
   end
 end
